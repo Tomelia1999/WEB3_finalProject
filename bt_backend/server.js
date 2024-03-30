@@ -13,17 +13,16 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'yair.nagar7@gmail.com',
-    pass: '0524735100' // Use an app-specific password if using Gmail
-  }
+    pass: 'zerj gxvx ojsa pgoo' 
+  }, 
+  debug: true
 });
 
 app.post('/send-email', (req, res) => {
   const { recipient, subject, text } = req.body;
 
-  console.log(recipient, subject, text);
-
   const mailOptions = {
-    from: 'yair.nagar7@gmail.com',
+    from: 'BLOCK-TICKET',
     to: recipient,
     subject: subject,
     text: text
