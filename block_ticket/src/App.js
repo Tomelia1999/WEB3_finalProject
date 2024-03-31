@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom'; // Import Routes and Route
-import ThreeInputsPage from './main';
-import BuyerDetailsPage from './buyer';
+import ThreeInputsPage from './components/main';
+import BuyerDetailsPage from './components/buyer';
 
 function App() {
   return (
