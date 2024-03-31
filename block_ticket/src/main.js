@@ -4,8 +4,11 @@ import axios from "axios";
 import { detectEthereumProvider } from '@metamask/detect-provider';
 import { useTheme } from "@chakra-ui/react";
 import { ChakraProvider } from "@chakra-ui/react";
+import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
+
 
 const ThreeInputsPage = () => {
+    const navigate = useNavigate(); // Initialize useNavigate hook
     const theme = useTheme();
     const toast = useToast(); // Using Chakra UI's toast for notifications
 
@@ -44,6 +47,7 @@ const ThreeInputsPage = () => {
                 recipient: input2,
                 subject: "New ticket offer",
                 text: `${walletAddress} is selling ${input1} for ${input3} dollars`,
+                url: `http://localhost:3001/buyer/${encodeURIComponent(`${walletAddress},${input1},${input3}`)}`
             });
 
             if (response.status === 200) {
@@ -69,6 +73,7 @@ const ThreeInputsPage = () => {
                 isClosable: true,
             });
         }
+
     };
 
     const handleConnectWallet = async () => {
@@ -95,24 +100,24 @@ const ThreeInputsPage = () => {
     };
 
     return (
-        <ChakraProvider theme={theme}>
+        <ChakraProvider theme={theme}> {/* Added ChakraProvider */}
             <Box
                 display="flex"
                 justifyContent="center"
                 alignItems="center"
-                alignContent={"center"}
                 height="100vh"
             >
                 <VStack
                     spacing={4}
                     p={8}
-                    bg="whiteAlpha.900" // Light background for the form area
-                    boxShadow="xl" // Shadow for a subtle "lifted" look
+                    bg="whiteAlpha.900"
+                    boxShadow="xl"
                     border="1px solid"
-                    height={"40vh"}
+                    height="40vh"
                     borderRadius="10px"
+                    centerContent // Center all child elements vertically and horizontally
                 >
-                    <Text fontSize="2xl" fontWeight="bold" mt={"20%"}>
+                    <Text fontSize="2xl" fontWeight="bold">
                         Sell Your Tickets
                     </Text>
                     <Input
@@ -136,25 +141,25 @@ const ThreeInputsPage = () => {
                         mb={4}
                         border="1px solid"
                     />
+                    {walletAddress && (
+                        <Text mt={2}>Connected Wallet Address: {walletAddress}</Text>
+                    )}
                     <Button
-                        border="1px solid"
                         width="15vw"
-                        borderRadius={"10px"}
-                        onClick={handleConnectWallet} // Connect wallet button click handler
+                        borderRadius="10px"
+                        onClick={handleConnectWallet}
+                        border="1px solid"
                     >
                         Connect MetaMask Wallet
                     </Button>
                     <Button
-                        border="1px solid"
                         width="15vw"
-                        borderRadius={"10px"}
+                        borderRadius="10px"
                         onClick={sendEmail}
+                        border="1px solid"
                     >
                         Send
                     </Button>
-                    {walletAddress && (
-                        <Text mt={2}>Connected Wallet Address: {walletAddress}</Text>
-                    )}
                 </VStack>
             </Box>
         </ChakraProvider>
@@ -162,3 +167,7 @@ const ThreeInputsPage = () => {
 };
 
 export default ThreeInputsPage;
+
+
+
+

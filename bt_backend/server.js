@@ -19,14 +19,22 @@ const transporter = nodemailer.createTransport({
 });
 
 app.post('/send-email', (req, res) => {
-  const { recipient, subject, text } = req.body;
+  const { recipient, subject, text, url} = req.body;
 
-  const mailOptions = {
-    from: 'BLOCK-TICKET',
-    to: recipient,
-    subject: subject,
-    text: text
-  };
+const mailOptions = {
+  from: 'BLOCK-TICKET',
+  to: recipient,
+  subject: subject,
+  html: `
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+    <h2 style="color: #333;">Block-Ticket</h2>
+    <p>${text}</p>
+    <p style="margin-top: 20px;">View details <a href="${url}" style="color: #007bff; text-decoration: none;">here</a></p>
+  </div>
+`
+};
+
+  
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
@@ -38,6 +46,7 @@ app.post('/send-email', (req, res) => {
     }
   });
 });
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
