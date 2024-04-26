@@ -3,12 +3,14 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, Text, VStack, Box, ChakraProvider, useToast } from '@chakra-ui/react';
 import { detectEthereumProvider } from '@metamask/detect-provider';
+import { ethers } from 'ethers';
 
 const BuyerDetailsPage = () => {
     const { sellerDetails } = useParams();
     const decodedSellerDetails = decodeURIComponent(sellerDetails).split(',');
     const navigate = useNavigate();
     const toast = useToast();
+    const contractAddress = '0x52b5F63763A4861bB759F113155C6ED0C8929F49';
 
     const [buyerAddress, setBuyerAddress] = useState(null);
 
@@ -55,9 +57,71 @@ const BuyerDetailsPage = () => {
             });
         }
     };
+    const confirmTransaction = async () => {
+        if (!window.ethereum) {
+            toast({
+                title: "Error",
+                description: "Please install MetaMask!",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+            return;
+        }
+    
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+    
+        const contractAddress = "0x52b5F63763A4861bB759F113155C6ED0C8929F49";
+        const abi = [
+            "function tradeTokens(address tokenAddress, address seller, address buyer, uint256 tokenAmount, uint256 paymentAmount) payable"
+        ];
+    
+        const tokenTradeContract = new ethers.Contract(contractAddress, abi, signer);
+    
+        const tokenAddress = decodedSellerDetails[1];
+        const seller = decodedSellerDetails[0]; // Seller's address
+        const numberOfTickets = decodedSellerDetails[2];
+        const paymentAmount = ethers.utils.parseEther(decodedSellerDetails[3]); // Payment amount in ether
 
-    const confirmTransaction = () => {
-        console.log('Transaction confirmed!');
+        console.log('seller : ', seller);
+        console.log('token address : ', tokenAddress);
+        console.log('tickets amount : ', numberOfTickets);
+        console.log('payment amount : ', paymentAmount);
+    
+        try {
+            const tx = await tokenTradeContract.tradeTokens(
+                tokenAddress,
+                seller,
+                buyerAddress,
+                numberOfTickets,
+                paymentAmount,
+                { value: paymentAmount }
+            );
+            console.log('Transaction submitted:', tx.hash);
+    
+            // Wait for the transaction to be confirmed
+            const receipt = await tx.wait();
+            console.log('Transaction confirmed:', receipt);
+    
+            // Notify user of successful transaction
+            toast({
+                title: "Success",
+                description: "Transaction successful!",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error('Transaction failed:', error);
+            toast({
+                title: "Transaction Failed",
+                description: error.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
     };
 
     return (
@@ -84,7 +148,7 @@ const BuyerDetailsPage = () => {
                     </Text>
                     <Text>Seller Wallet Address: {decodedSellerDetails[0]}</Text>
                     <Text>Ticket: {decodedSellerDetails[1]}</Text>
-                    <Text>Price: {decodedSellerDetails[2]}</Text>
+                    <Text>Price: {decodedSellerDetails[3]}</Text>
                     {buyerAddress && <Text>Buyer Wallet Address: {buyerAddress}</Text>}
                     <Button
                         width="15vw"

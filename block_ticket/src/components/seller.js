@@ -13,6 +13,8 @@ const ThreeInputsPage = () => {
     const [emailSent, setEmailSent] = useState(false);
     const [emailError, setEmailError] = useState(false);
     const [walletAddress, setWalletAddress] = useState([]);
+    const [ticketQuantity, setTicketQuantity] = useState(1); // Default to 1 ticket
+
 
     useEffect(() => {
         const detectProvider = async () => {
@@ -41,17 +43,17 @@ const ThreeInputsPage = () => {
         const input1 = document.getElementById("input1").value;
         const input2 = document.getElementById("input2").value;
         const input3 = document.getElementById("input3").value;
-
+    
         try {
             const response = await axios.post("http://localhost:3000/send-email", {
                 recipient: input2,
                 subject: "New ticket offer",
-                text: `${walletAddress} is selling ${input1} for ${input3} dollars`,
+                text: `${walletAddress} is selling ${ticketQuantity} tickets of ${input1} for ${input3} dollars each`,
                 url: `http://localhost:3001/buyer/${encodeURIComponent(
-                    `${walletAddress},${input1},${input3}`
+                    `${walletAddress},${input1},${ticketQuantity},${input3}`
                 )}`,
             });
-
+    
             if (response.status === 200) {
                 setEmailSent(true);
                 setEmailError(false);
@@ -76,6 +78,7 @@ const ThreeInputsPage = () => {
             });
         }
     };
+    
 
     const handleConnectWallet = async () => {
         try {
@@ -143,6 +146,17 @@ const ThreeInputsPage = () => {
                         {walletAddress && (
                             <Text mt={2}>Connected Wallet Address: {walletAddress}</Text>
                         )}
+                        <Input
+                            id="input4"
+                            placeholder="Number of Tickets"
+                            variant="filled"
+                            mb={4}
+                            type="number" // Ensures that only numbers can be entered
+                            value={ticketQuantity}
+                            onChange={(e) => setTicketQuantity(e.target.value)}
+                            border="1px solid"
+                        />
+
 
                         <Button
                             width="15vw"
