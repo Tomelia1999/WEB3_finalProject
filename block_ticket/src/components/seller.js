@@ -64,7 +64,7 @@ const ThreeInputsPage = () => {
 
 
 
-
+    
     useEffect(() => {
         const detectProvider = async () => {
             const provider = await detectEthereumProvider();
@@ -141,6 +141,7 @@ const ThreeInputsPage = () => {
             console.log('Approval successful:', receipt);
             alert('Token has been successfully approved for transfer!');
             if(receipt.hash){
+                setIsApproveForAll(true)
                 sendEmail()
             }
         } catch (error) {
@@ -238,11 +239,11 @@ const ThreeInputsPage = () => {
                             border="1px solid"
                         />
                         <Input
-                            id="input2"
-                            placeholder="Enter an Email"
-                            variant="filled"
-                            mb={2}
-                            border="1px solid"
+                       id="input2"
+                       placeholder="Enter an Email"
+                       variant="filled"
+                       mb={2}
+                       border="1px solid"
                         />
                         <Input
                             id="input3"

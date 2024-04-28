@@ -64,46 +64,6 @@ const MainPage = () => {
                         </Flex>
                     </Flex>
                 </Flex>
-                <Flex
-                    border="1px solid"
-                    backgroundColor={"white"}
-                    height={"60vh"}
-                    width="30vw"
-                    opacity={"0.6"}
-                    borderRadius={"10px"}
-                    m={30}
-                    textAlign={"left"}
-                    justifyContent="center"
-                >
-                    <Flex width="80%" mt="8%" alignItems="center" flexDirection={"column"}>
-                    <Text fontSize="2xl" fontWeight="bold" mb={4} color="gray.800">Buyer's Bonanza</Text>
-
-                        <Text>
-                            On the hunt for tickets without the drama? Welcome to BlockTicket's
-                            Buyer's Bonanza, where snagging tickets is as secure as Fort Knox but
-                            way more fun. Dive into a sea of options, find your perfect event, and
-                            let our blockchain wizardry secure your purchase. It's like having a
-                            backstage pass to the world of hassle-free buying. Get ready to wave
-                            goodbye to counterfeits and hello to a world where buying tickets is as
-                            joyful as the events themselves!
-                        </Text>
-                        <Flex
-                            _hover={{ width: "60%",
-                        height:"13%" }}
-                            cursor="pointer"
-                            backgroundColor={"gray"}
-                            height={"10%"}
-                            width={"50%"}
-                            marginTop={"10%"}
-                            borderRadius={"10px"}
-                            alignItems="center"
-                            justifyContent={"center"}
-                            color={"white"}
-                        >
-                            I want to buy
-                        </Flex>
-                    </Flex>
-                </Flex>
             </Box>
         </ChakraProvider>
     );
