@@ -41,7 +41,26 @@ const ThreeInputsPage = () => {
             }
         };
 
+        const checkAllowence = async () => {
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
+    
+            // ERC-721 ABI focusing on the `approve` function
+            const nftAddress = '0xd3a03A1e3c11D56098fA9B0e7691fF3Ef47DCd2A' // ERC-721 Contract address
+            const nftABI = [
+                "function getApproved(uint256 tokenId) external view returns (address)",
+                "function isApprovedForAll(address owner, address operator) external view returns (bool)"
+            ];
+            const nftContract = new ethers.Contract(nftAddress, nftABI, signer);
+            const ownerAddress = '0x4524774349C16bF698e7752DAe0B57336C7B508E' // The owner of the token
+            const operatorAddress = contractAddress // The address you want to check for universal approval
+            const isOperatorApproved = await nftContract.isApprovedForAll(ownerAddress, operatorAddress);
+            console.log(`Is the operator ${operatorAddress} approved for all tokens of ${ownerAddress}?`, isOperatorApproved);
+            
+        }
+
         detectProvider();
+        checkAllowence()
     }, []);
 
     const approveERC721Token = async (tokenId, toAddress) => {
@@ -58,14 +77,15 @@ const ThreeInputsPage = () => {
     
             // ERC-721 ABI focusing on the `approve` function
             const abi = [
-                "function approve(address to, uint256 tokenId) external"
+                "function approve(address to, uint256 tokenId) external",
+                "function setApprovalForAll(address operator, bool _approved) external"
             ];
     
             // Create a new contract instance with signer
-            const tokenContract = new ethers.Contract(contractAddress, abi, signer);
+            const tokenContract = new ethers.Contract("0xd3a03A1e3c11D56098fA9B0e7691fF3Ef47DCd2A", abi, signer);
     
             // Call the approve function
-            const transaction = await tokenContract.approve(contractAddress, 5);
+            const transaction = await tokenContract.setApprovalForAll(contractAddress, true);
     
             // Wait for the transaction to be mined
             const receipt = await transaction.wait();
