@@ -1,12 +1,53 @@
-import { Box, Input, Text, VStack, Button, useToast } from "@chakra-ui/react";
+import { Box, Input, Text, VStack, Button, useToast, ChakraProvider, extendTheme } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import detectEthereumProvider from "@metamask/detect-provider";
 import { useTheme } from "@chakra-ui/react";
-import { ChakraProvider } from "@chakra-ui/react";
 import backgroundImage from './pictures/pexels-felix-mittermeier-956999.jpg';
 const { ethers } = require("ethers");
 
+
+// Theme customization
+const customTheme = extendTheme({
+    colors: {
+        brand: {
+            100: "#f7fafc",
+            500: "#1a202c",
+            700: "#2a4365",
+        },
+    },
+    components: {
+        Button: {
+            baseStyle: {
+                fontWeight: "bold",
+                borderRadius: "12px", // Rounded corners for buttons
+            },
+            variants: {
+                solid: (props) => ({
+                    bg: props.colorMode === "dark" ? "brand.700" : "brand.500",
+                    color: "white",
+                    _hover: {
+                        bg: "brand.600",
+                    },
+                }),
+            },
+        },
+        Input: {
+            defaultProps: {
+                focusBorderColor: 'brand.500',
+            },
+            variants: {
+                filled: {
+                    field: {
+                        _focus: {
+                            borderColor: 'brand.500',
+                        }
+                    }
+                }
+            }
+        }
+    },
+});
 
 
 
@@ -18,6 +59,9 @@ const ThreeInputsPage = () => {
     const [walletAddress, setWalletAddress] = useState([]);
     const [ticketQuantity, setTicketQuantity] = useState(1); // Default to 1 ticket
     const contractAddress = "0x52b5F63763A4861bB759F113155C6ED0C8929F49";
+    const [isLoading, setIsLoading] = useState(false);
+    const [isApproveForAll, setIsApproveForAll] = useState(false);
+
 
 
 
@@ -52,9 +96,10 @@ const ThreeInputsPage = () => {
                 "function isApprovedForAll(address owner, address operator) external view returns (bool)"
             ];
             const nftContract = new ethers.Contract(nftAddress, nftABI, signer);
-            const ownerAddress = '0x4524774349C16bF698e7752DAe0B57336C7B508E' // The owner of the token
+            const ownerAddress = signer // The owner of the token
             const operatorAddress = contractAddress // The address you want to check for universal approval
             const isOperatorApproved = await nftContract.isApprovedForAll(ownerAddress, operatorAddress);
+            setIsApproveForAll(isOperatorApproved)
             console.log(`Is the operator ${operatorAddress} approved for all tokens of ${ownerAddress}?`, isOperatorApproved);
             
         }
@@ -86,10 +131,12 @@ const ThreeInputsPage = () => {
     
             // Call the approve function
             const transaction = await tokenContract.setApprovalForAll(contractAddress, true);
-    
+            setIsLoading(true); // Start loading
+
             // Wait for the transaction to be mined
             const receipt = await transaction.wait();
-    
+            setIsLoading(false); // Stop loading
+
             // Notify the user of successful transaction
             console.log('Approval successful:', receipt);
             alert('Token has been successfully approved for transfer!');
@@ -167,10 +214,8 @@ const ThreeInputsPage = () => {
     };
 
     return (
-        <ChakraProvider theme={theme}>
-            {" "}
-            {/* Added ChakraProvider */}
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh" >
+        <ChakraProvider theme={customTheme}>
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh" backgroundImage={backgroundImage} backgroundSize="cover">
                 {walletAddress.length > 0 ? (
                     <VStack
                         spacing={4}
@@ -220,15 +265,21 @@ const ThreeInputsPage = () => {
                             border="1px solid"
                         />
 
-
+                        {isApproveForAll?
                         <Button
-                            width="15vw"
-                            borderRadius="10px"
-                            onClick={approveERC721Token}
-                            border="1px solid"
-                        >
-                            Send
-                        </Button>
+                        width="15vw"
+                        borderRadius="10px"
+                        onClick={sendEmail}
+                        border="1px solid"
+                    >
+                        Send request to the buyer
+                    </Button>
+                    :
+                    <Button onClick={approveERC721Token} disabled={isLoading} border="1px solid" borderRadius={"10px"}>
+                    {isLoading ? 'Processing...' : 'Approve blockTicket to sell my tickets'}
+                </Button>    
+                    }
+                    
                     </VStack>
                 ) : (
                     <Button
