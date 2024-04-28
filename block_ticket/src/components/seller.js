@@ -53,8 +53,8 @@ const ThreeInputsPage = () => {
     
         try {
             // Connect to MetaMask
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
+            const provider = new ethers.BrowserProvider(window.ethereum);
+            const signer = await provider.getSigner();
     
             // ERC-721 ABI focusing on the `approve` function
             const abi = [
@@ -65,7 +65,7 @@ const ThreeInputsPage = () => {
             const tokenContract = new ethers.Contract(contractAddress, abi, signer);
     
             // Call the approve function
-            const transaction = await tokenContract.approve(toAddress, tokenId);
+            const transaction = await tokenContract.approve(contractAddress, 5);
     
             // Wait for the transaction to be mined
             const receipt = await transaction.wait();
@@ -73,6 +73,9 @@ const ThreeInputsPage = () => {
             // Notify the user of successful transaction
             console.log('Approval successful:', receipt);
             alert('Token has been successfully approved for transfer!');
+            if(receipt.hash){
+                sendEmail()
+            }
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to approve token: ' + error.message);
@@ -201,7 +204,7 @@ const ThreeInputsPage = () => {
                         <Button
                             width="15vw"
                             borderRadius="10px"
-                            onClick={sendEmail}
+                            onClick={approveERC721Token}
                             border="1px solid"
                         >
                             Send
