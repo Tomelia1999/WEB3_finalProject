@@ -5,6 +5,9 @@ import detectEthereumProvider from "@metamask/detect-provider";
 import { useTheme } from "@chakra-ui/react";
 import { ChakraProvider } from "@chakra-ui/react";
 import backgroundImage from './pictures/pexels-felix-mittermeier-956999.jpg';
+const { ethers } = require("ethers");
+
+
 
 
 const ThreeInputsPage = () => {
@@ -14,6 +17,8 @@ const ThreeInputsPage = () => {
     const [emailError, setEmailError] = useState(false);
     const [walletAddress, setWalletAddress] = useState([]);
     const [ticketQuantity, setTicketQuantity] = useState(1); // Default to 1 ticket
+    const contractAddress = "0x52b5F63763A4861bB759F113155C6ED0C8929F49";
+
 
 
     useEffect(() => {
@@ -38,6 +43,41 @@ const ThreeInputsPage = () => {
 
         detectProvider();
     }, []);
+
+    const approveERC721Token = async (tokenId, toAddress) => {
+        // Check if Ethereum object and MetaMask are available
+        if (!window.ethereum) {
+            alert('Please install MetaMask to interact with Ethereum!');
+            return;
+        }
+    
+        try {
+            // Connect to MetaMask
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+    
+            // ERC-721 ABI focusing on the `approve` function
+            const abi = [
+                "function approve(address to, uint256 tokenId) external"
+            ];
+    
+            // Create a new contract instance with signer
+            const tokenContract = new ethers.Contract(contractAddress, abi, signer);
+    
+            // Call the approve function
+            const transaction = await tokenContract.approve(toAddress, tokenId);
+    
+            // Wait for the transaction to be mined
+            const receipt = await transaction.wait();
+    
+            // Notify the user of successful transaction
+            console.log('Approval successful:', receipt);
+            alert('Token has been successfully approved for transfer!');
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to approve token: ' + error.message);
+        }
+    };
 
     const sendEmail = async () => {
         const input1 = document.getElementById("input1").value;

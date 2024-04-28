@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, Text, VStack, Box, ChakraProvider, useToast } from '@chakra-ui/react';
-import { detectEthereumProvider } from '@metamask/detect-provider';
-import { ethers } from 'ethers';
+import detectEthereumProvider from '@metamask/detect-provider';
+const { ethers } = require("ethers");
 
 const BuyerDetailsPage = () => {
     const { sellerDetails } = useParams();
@@ -69,20 +69,25 @@ const BuyerDetailsPage = () => {
             return;
         }
     
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-    
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+
+        console.log("provider:", provider)
+
         const contractAddress = "0x52b5F63763A4861bB759F113155C6ED0C8929F49";
         const abi = [
             "function tradeTokens(address tokenAddress, address seller, address buyer, uint256 tokenAmount, uint256 paymentAmount) payable"
         ];
     
         const tokenTradeContract = new ethers.Contract(contractAddress, abi, signer);
+
+       // const symbol = await tokenTradeContract.symbol()
+       // console.log("symbol is:", symbol)
     
         const tokenAddress = decodedSellerDetails[1];
         const seller = decodedSellerDetails[0]; // Seller's address
         const numberOfTickets = decodedSellerDetails[2];
-        const paymentAmount = ethers.utils.parseEther(decodedSellerDetails[3]); // Payment amount in ether
+        const paymentAmount = ethers.parseUnits("0.01", 18);; // Payment amount in ether
 
         console.log('seller : ', seller);
         console.log('token address : ', tokenAddress);
@@ -90,13 +95,19 @@ const BuyerDetailsPage = () => {
         console.log('payment amount : ', paymentAmount);
     
         try {
+            const transactionOptions = {
+                value: paymentAmount, // This is the ETH amount sent with the transaction
+                gasPrice: ethers.parseUnits("10", "gwei"), // Gas price in gwei
+                gasLimit: 1000000 // A standard gas limit for token transfers
+            };
+            
             const tx = await tokenTradeContract.tradeTokens(
                 tokenAddress,
                 seller,
                 buyerAddress,
                 numberOfTickets,
                 paymentAmount,
-                { value: paymentAmount }
+                transactionOptions
             );
             console.log('Transaction submitted:', tx.hash);
     
