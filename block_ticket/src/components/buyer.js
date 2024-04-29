@@ -1,49 +1,82 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import { Button, Text, VStack, Box, ChakraProvider, useToast } from '@chakra-ui/react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button, Text, VStack, Box, ChakraProvider, useToast, Input, extendTheme } from '@chakra-ui/react';
 import detectEthereumProvider from '@metamask/detect-provider';
+import backgroundImage from './pictures/pexels-felix-mittermeier-956999.jpg';
 const { ethers } = require("ethers");
+
+
+const customTheme = extendTheme({
+    colors: {
+        brand: {
+            100: "#f7fafc",
+            500: "#1a202c",
+            700: "#2a4365",
+        },
+    },
+    components: {
+        Button: {
+            baseStyle: {
+                fontWeight: "bold",
+                borderRadius: "12px",
+            },
+            variants: {
+                solid: (props) => ({
+                    bg: props.colorMode === "dark" ? "brand.700" : "brand.500",
+                    color: "white",
+                    _hover: {
+                        bg: "brand.600",
+                    },
+                }),
+            },
+        },
+        Input: {
+            defaultProps: {
+                focusBorderColor: 'brand.500',
+            },
+            variants: {
+                filled: {
+                    field: {
+                        _focus: {
+                            borderColor: 'brand.500',
+                        }
+                    }
+                }
+            }
+        }
+    },
+});
+
+
 
 const BuyerDetailsPage = () => {
     const { sellerDetails } = useParams();
     const decodedSellerDetails = decodeURIComponent(sellerDetails).split(',');
     const navigate = useNavigate();
     const toast = useToast();
-    const contractAddress = '0x52b5F63763A4861bB759F113155C6ED0C8929F49';
-
     const [buyerAddress, setBuyerAddress] = useState(null);
 
     useEffect(() => {
         const detectProvider = async () => {
             const provider = await detectEthereumProvider();
             if (provider) {
-                // MetaMask is installed and available
                 console.log('MetaMask is installed and available:', provider);
-                // Retrieve the connected wallet's address
                 const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                 if (accounts.length > 0) {
-                    // Set the buyer's wallet address state
                     setBuyerAddress(accounts[0]);
                 }
             } else {
-                // MetaMask is not installed or not available
                 console.log('MetaMask is not installed or not available');
             }
         };
-
         detectProvider();
     }, []);
 
     const connectWallet = async () => {
         try {
-            // Request connection to MetaMask wallet
             await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log('Wallet connected successfully');
-            // Retrieve the connected wallet's address
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (accounts.length > 0) {
-                // Set the buyer's wallet address state
                 setBuyerAddress(accounts[0]);
             }
         } catch (error) {
@@ -69,26 +102,23 @@ const BuyerDetailsPage = () => {
             return;
         }
     
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-
-        console.log("provider:", provider)
-
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+    
+        console.log("provider:", provider);
+    
         const contractAddress = "0x52b5F63763A4861bB759F113155C6ED0C8929F49";
         const abi = [
             "function tradeTokens(address tokenAddress, address seller, address buyer, uint256 tokenAmount, uint256 paymentAmount) payable"
         ];
     
         const tokenTradeContract = new ethers.Contract(contractAddress, abi, signer);
-
-       // const symbol = await tokenTradeContract.symbol()
-       // console.log("symbol is:", symbol)
     
         const tokenAddress = decodedSellerDetails[1];
         const seller = decodedSellerDetails[0]; // Seller's address
         const numberOfTickets = decodedSellerDetails[2];
-        const paymentAmount = ethers.parseUnits("0.01", 18);; // Payment amount in ether
-
+        const paymentAmount = ethers.utils.parseUnits("0.01", "ether"); // Payment amount in ether
+    
         console.log('seller : ', seller);
         console.log('token address : ', tokenAddress);
         console.log('tickets amount : ', numberOfTickets);
@@ -97,8 +127,8 @@ const BuyerDetailsPage = () => {
         try {
             const transactionOptions = {
                 value: paymentAmount, // This is the ETH amount sent with the transaction
-                gasPrice: ethers.parseUnits("10", "gwei"), // Gas price in gwei
-                gasLimit: 1000000 // A standard gas limit for token transfers
+                gasPrice: ethers.utils.parseUnits("2", "gwei"), // Gas price in gwei
+                gasLimit: 21000000 // A standard gas limit for token transfers
             };
             
             const tx = await tokenTradeContract.tradeTokens(
@@ -134,49 +164,28 @@ const BuyerDetailsPage = () => {
             });
         }
     };
+    
 
     return (
-        <ChakraProvider>
-            <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                alignContent="center"
-                height="100vh"
-            >
-                <VStack
-                    spacing={4}
-                    p={8}
-                    bg="white"
-                    boxShadow="xl"
-                    border="1px solid"
-                    height="40vh"
-                    borderRadius="10px"
-                    alignItems="center"
-                >
-                    <Text fontSize="2xl" fontWeight="bold">
-                        Transaction Details
-                    </Text>
+        <ChakraProvider theme={customTheme}>
+            <Box display="flex" justifyContent="center" alignItems="center" height="100vh" backgroundImage={backgroundImage} backgroundSize="cover">
+                <VStack spacing={4} p={8} bg="whiteAlpha.900" boxShadow="xl" border="1px solid" borderRadius="10px">
+                    <Text fontSize="2xl" fontWeight="bold">Transaction Details</Text>
                     <Text>Seller Wallet Address: {decodedSellerDetails[0]}</Text>
                     <Text>Ticket: {decodedSellerDetails[1]}</Text>
                     <Text>Price: {decodedSellerDetails[3]}</Text>
-                    {buyerAddress && <Text>Buyer Wallet Address: {buyerAddress}</Text>}
-                    <Button
-                        width="15vw"
-                        borderRadius="10px"
-                        onClick={connectWallet}
-                        colorScheme="blue"
-                    >
-                        Connect Wallet
-                    </Button>
-                    <Button
-                        width="15vw"
-                        borderRadius="10px"
-                        onClick={confirmTransaction}
-                        colorScheme="green"
-                    >
-                        Confirm Transaction
-                    </Button>
+                    {buyerAddress ? (
+                        <>
+                            <Text>Buyer Wallet Address: {buyerAddress}</Text>
+                            <Button width="15vw" borderRadius="10px" colorScheme="green" onClick={confirmTransaction}>
+                                Confirm Transaction
+                            </Button>
+                        </>
+                    ) : (
+                        <Button width="15vw" borderRadius="10px" colorScheme="blue" onClick={connectWallet}>
+                            Connect Wallet
+                        </Button>
+                    )}
                 </VStack>
             </Box>
         </ChakraProvider>

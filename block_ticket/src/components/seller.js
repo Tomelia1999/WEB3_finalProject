@@ -66,7 +66,9 @@ const ThreeInputsPage = () => {
 
     
     useEffect(() => {
+
         const detectProvider = async () => {
+            console.log('here1');
             const provider = await detectEthereumProvider();
             if (provider) {
                 // MetaMask is installed and available
@@ -85,12 +87,14 @@ const ThreeInputsPage = () => {
             }
         };
 
-        const checkAllowence = async () => {
-            const provider = new ethers.BrowserProvider(window.ethereum);
+
+        const checkAllowance = async () => {
+            console.log('here2');
+            const provider = new ethers.BrowserProvider.Web3Provider(window.ethereum);
             const signer = await provider.getSigner();
     
             // ERC-721 ABI focusing on the `approve` function
-            const nftAddress = '0xd3a03A1e3c11D56098fA9B0e7691fF3Ef47DCd2A' // ERC-721 Contract address
+            const nftAddress = '0x8E3A29E70847bcaaDB227f9913f0e404FDBA8164' // ERC-721 Contract address
             const nftABI = [
                 "function getApproved(uint256 tokenId) external view returns (address)",
                 "function isApprovedForAll(address owner, address operator) external view returns (bool)"
@@ -104,12 +108,11 @@ const ThreeInputsPage = () => {
             
         }
 
-        detectProvider();
-        checkAllowence()
+        detectProvider()
+        checkAllowance()
     }, []);
 
-    const approveERC721Token = async (tokenId, toAddress) => {
-        // Check if Ethereum object and MetaMask are available
+    const approveERC721Token = async () => {
         if (!window.ethereum) {
             alert('Please install MetaMask to interact with Ethereum!');
             return;
@@ -117,38 +120,38 @@ const ThreeInputsPage = () => {
     
         try {
             // Connect to MetaMask
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
     
-            // ERC-721 ABI focusing on the `approve` function
+            // ERC-721 ABI focusing on the `approve` and `setApprovalForAll` functions
             const abi = [
                 "function approve(address to, uint256 tokenId) external",
                 "function setApprovalForAll(address operator, bool _approved) external"
             ];
     
             // Create a new contract instance with signer
-            const tokenContract = new ethers.Contract("0xd3a03A1e3c11D56098fA9B0e7691fF3Ef47DCd2A", abi, signer);
+            const tokenContract = new ethers.Contract("0x8E3A29E70847bcaaDB227f9913f0e404FDBA8164", abi, signer);
     
-            // Call the approve function
+            // Call the setApprovalForAll function
             const transaction = await tokenContract.setApprovalForAll(contractAddress, true);
             setIsLoading(true); // Start loading
-
+    
             // Wait for the transaction to be mined
             const receipt = await transaction.wait();
             setIsLoading(false); // Stop loading
-
+    
             // Notify the user of successful transaction
             console.log('Approval successful:', receipt);
             alert('Token has been successfully approved for transfer!');
-            if(receipt.hash){
-                setIsApproveForAll(true)
-                sendEmail()
+            if (receipt.status === 1) {
+                setIsApproveForAll(true);
             }
         } catch (error) {
             console.error('Error:', error);
             alert('Failed to approve token: ' + error.message);
         }
     };
+    
 
     const sendEmail = async () => {
         const input1 = document.getElementById("input1").value;
@@ -159,7 +162,7 @@ const ThreeInputsPage = () => {
             const response = await axios.post("http://localhost:3000/send-email", {
                 recipient: input2,
                 subject: "New ticket offer",
-                text: `${walletAddress} is selling ${ticketQuantity} tickets of ${input1} for ${input3} dollars each`,
+                text: `${walletAddress} is selling ${ticketQuantity} tickets of ${input1} for ${input3} eth each`,
                 url: `http://localhost:3001/buyer/${encodeURIComponent(
                     `${walletAddress},${input1},${ticketQuantity},${input3}`
                 )}`,
